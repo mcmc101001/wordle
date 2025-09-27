@@ -9,6 +9,7 @@ type HighlightState = "correct" | "present" | "absent" | "unsubmitted";
 type AnimationState = "awaiting" | "animating" | "done";
 
 const ANIMATION_DURATION = 500;
+const alphabetRegex = /^[A-Za-z]$/;
 
 export default function Wordle() {
   const solution = getWordOfTheDay();
@@ -20,10 +21,6 @@ export default function Wordle() {
   const [currentCol, setCurrentCol] = useState(0);
 
   const [notification, setNotification] = useState("");
-
-  function isRowFilled(row: string[]) {
-    return row.every((letter) => letter !== "");
-  }
 
   function getNextEmptyCol(row: string[], currentCol: number) {
     // Find the next empty column after the current column
@@ -41,10 +38,21 @@ export default function Wordle() {
 
   const [isGameOver, setIsGameOver] = useState(false);
 
-  const alphabetRegex = /^[A-Za-z]$/;
-
   const globalOnKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      function isRowFilled(row: string[]) {
+        return row.every((letter) => letter !== "");
+      }
+
+      function handleEnter() {
+        setCurrentRow((prev) => prev + 1);
+        setCurrentCol(0);
+        if (letters[currentRow].join("") === solution) {
+          setIsGameOver(true);
+          return;
+        }
+      }
+
       if (isGameOver) {
         return;
       }
@@ -93,16 +101,7 @@ export default function Wordle() {
         setCurrentCol((prev) => (prev < 4 ? prev + 1 : 4));
       }
     },
-    [
-      letters,
-      setLetters,
-      currentRow,
-      currentCol,
-      isGameOver,
-      isRowFilled,
-      handleEnter,
-      alphabetRegex,
-    ]
+    [letters, setLetters, currentRow, currentCol, isGameOver]
   );
 
   useEffect(() => {
@@ -145,15 +144,6 @@ export default function Wordle() {
     }
 
     return result;
-  }
-
-  function handleEnter() {
-    setCurrentRow((prev) => prev + 1);
-    setCurrentCol(0);
-    if (letters[currentRow].join("") === solution) {
-      setIsGameOver(true);
-      return;
-    }
   }
 
   const [animatingIndexes, setAnimatingIndexes] = useState<
