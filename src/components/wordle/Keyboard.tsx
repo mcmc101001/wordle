@@ -31,7 +31,8 @@ export default function Keyboard() {
         <div key={rowIndex} className="flex justify-center gap-2">
           {row.map((keyboard) => (
             <button
-              className="h-12 px-4 rounded flex items-center justify-center bg-gray-300 text-gray-900 hover:bg-gray-400 active:bg-gray-500 disabled:opacity-50"
+              key={keyboard.key}
+              className="h-12 md:px-4 px-2 rounded flex items-center justify-center bg-gray-300 text-gray-900 hover:bg-gray-400 active:bg-gray-500 disabled:opacity-50"
               onClick={() => {
                 window.dispatchEvent(
                   new KeyboardEvent("keydown", { key: keyboard.key })
