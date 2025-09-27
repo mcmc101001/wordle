@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { deepCopy } from "@/lib/utils";
-import { getWordOfTheDay } from "./words";
+import { allWords, getWordOfTheDay } from "./words";
 
 type HighlightState = "correct" | "present" | "absent" | "unsubmitted";
 type AnimationState = "awaiting" | "animating" | "done";
@@ -11,13 +11,15 @@ type AnimationState = "awaiting" | "animating" | "done";
 const ANIMATION_DURATION = 500;
 
 export default function Wordle() {
-  const solution = getWordOfTheDay().toUpperCase();
+  const solution = getWordOfTheDay();
 
   const [letters, setLetters] = useState<string[][]>(
     Array(6).fill(Array(5).fill(""))
   );
   const [currentRow, setCurrentRow] = useState(0);
   const [currentCol, setCurrentCol] = useState(0);
+
+  const [notification, setNotification] = useState("");
 
   function isRowFilled(row: string[]) {
     return row.every((letter) => letter !== "");
@@ -52,6 +54,12 @@ export default function Wordle() {
           return;
         }
 
+        console.log(letters[currentRow].join(""));
+        if (!allWords.includes(letters[currentRow].join(""))) {
+          setNotification("Not in word list!");
+          return setTimeout(() => setNotification(""), 2000);
+        }
+
         handleEnter();
       } else if (e.key === "Backspace") {
         setLetters((prevLetters) => {
@@ -81,9 +89,20 @@ export default function Wordle() {
       const nextCol = getNextEmptyCol(letters[currentRow], currentCol);
       if (nextCol !== -1) {
         setCurrentCol(nextCol);
+      } else {
+        setCurrentCol((prev) => (prev < 4 ? prev + 1 : 4));
       }
     },
-    [letters, setLetters, currentRow, currentCol, isGameOver, isRowFilled]
+    [
+      letters,
+      setLetters,
+      currentRow,
+      currentCol,
+      isGameOver,
+      isRowFilled,
+      handleEnter,
+      alphabetRegex,
+    ]
   );
 
   useEffect(() => {
@@ -166,72 +185,75 @@ export default function Wordle() {
   }, [currentRow]);
 
   return (
-    <div className="flex flex-col gap-2">
-      {letters.map((row, rowIndex) => (
-        <div key={rowIndex} className="flex gap-2">
-          {Array(5)
-            .fill("")
-            .map((_, colIndex) => (
-              <motion.div
-                key={colIndex}
-                animate={
-                  rowIndex === currentRow - 1 &&
-                  animatingIndexes[colIndex] === "animating"
-                    ? "isAnimating"
-                    : rowIndex === currentRow - 1 &&
-                      animatingIndexes[colIndex] === "awaiting"
-                    ? "unsubmitted"
-                    : getHighlightState(rowIndex, row.join(""), solution)[
-                        colIndex
-                      ]
-                }
-                variants={{
-                  correct: {
-                    backgroundColor: "#538d4e",
-                    color: "#ffffff",
-                    rotateX: 0,
-                  },
-                  present: {
-                    backgroundColor: "#b59f3b",
-                    color: "#ffffff",
-                    rotateX: 0,
-                  },
-                  absent: {
-                    backgroundColor: "#3a3a3c",
-                    color: "#ffffff",
-                    rotateX: 0,
-                  },
-                  unsubmitted: {
-                    color: "#3a3a3c",
-                    backgroundColor: "#ffffff",
-                    rotateX: 0,
-                  },
-                  isAnimating: {
-                    color: "#3a3a3c",
-                    backgroundColor: "#ffffff",
-                    rotateX: 90,
-                  },
-                }}
-                transition={{
-                  rotateX: {
-                    duration: ANIMATION_DURATION / 1000,
-                    ease: "easeInOut",
-                  },
-                  backgroundColor: { duration: 0.1, ease: "easeInOut" },
-                  color: { duration: 0.1, ease: "easeInOut" },
-                }}
-                className={
-                  "size-16 border border-gray-400 text-3xl font-semibold flex items-center justify-center " +
-                  (rowIndex === currentRow && colIndex === currentCol
-                    ? "ring-2 ring-blue-600 ring-offset-2"
-                    : "")
-                }
-              >
-                {row[colIndex] || ""}
-              </motion.div>
-            ))}
-        </div>
-      ))}
+    <div className="flex flex-col items-center justify-center gap-4">
+      <div className="h-20 font-medium text-xl">{notification}</div>
+      <div className="flex flex-col gap-2">
+        {letters.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex gap-2">
+            {Array(5)
+              .fill("")
+              .map((_, colIndex) => (
+                <motion.div
+                  key={colIndex}
+                  animate={
+                    rowIndex === currentRow - 1 &&
+                    animatingIndexes[colIndex] === "animating"
+                      ? "isAnimating"
+                      : rowIndex === currentRow - 1 &&
+                        animatingIndexes[colIndex] === "awaiting"
+                      ? "unsubmitted"
+                      : getHighlightState(rowIndex, row.join(""), solution)[
+                          colIndex
+                        ]
+                  }
+                  variants={{
+                    correct: {
+                      backgroundColor: "#538d4e",
+                      color: "#ffffff",
+                      rotateX: 0,
+                    },
+                    present: {
+                      backgroundColor: "#b59f3b",
+                      color: "#ffffff",
+                      rotateX: 0,
+                    },
+                    absent: {
+                      backgroundColor: "#3a3a3c",
+                      color: "#ffffff",
+                      rotateX: 0,
+                    },
+                    unsubmitted: {
+                      color: "#3a3a3c",
+                      backgroundColor: "#ffffff",
+                      rotateX: 0,
+                    },
+                    isAnimating: {
+                      color: "#3a3a3c",
+                      backgroundColor: "#ffffff",
+                      rotateX: 90,
+                    },
+                  }}
+                  transition={{
+                    rotateX: {
+                      duration: ANIMATION_DURATION / 1000,
+                      ease: "easeInOut",
+                    },
+                    backgroundColor: { duration: 0.1, ease: "easeInOut" },
+                    color: { duration: 0.1, ease: "easeInOut" },
+                  }}
+                  className={
+                    "size-16 border border-gray-400 text-3xl font-semibold flex items-center justify-center " +
+                    (rowIndex === currentRow && colIndex === currentCol
+                      ? "ring-2 ring-blue-600 ring-offset-2"
+                      : "")
+                  }
+                >
+                  {row[colIndex] || ""}
+                </motion.div>
+              ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

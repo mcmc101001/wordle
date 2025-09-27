@@ -3,13 +3,13 @@ export const getWordOfTheDay = () => {
   const start = new Date(2022, 0, 0);
   const diff = Number(now) - Number(start);
   let day = Math.floor(diff / (1000 * 60 * 60 * 24));
-  while (day > allWords.length) {
-    day -= allWords.length;
+  while (day > allSolutions.length) {
+    day -= allSolutions.length;
   }
-  return allWords[day];
+  return allSolutions[day].toUpperCase();
 };
 
-const allWords = [
+const allSolutions = [
   "cigar",
   "rebut",
   "sissy",
@@ -12986,3 +12986,7 @@ const allowedGuesses = [
   "zymes",
   "zymic",
 ];
+
+export const allWords = [...allSolutions, ...allowedGuesses].map((word) =>
+  word.toUpperCase()
+);
