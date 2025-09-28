@@ -83,20 +83,15 @@ export default function Wordle() {
 
         handleEnter();
       } else if (e.key === "Backspace") {
-        setLetters((prevLetters) => {
-          const newLetters = deepCopy(prevLetters);
-          newLetters[currentRow][currentCol] = "";
-          return newLetters;
-        });
-        setCurrentCol((prev) => (prev > 0 ? prev - 1 : 0));
+        handleBackSpace();
       } else if (e.key === "ArrowLeft") {
         setCurrentCol((prev) => (prev > 0 ? prev - 1 : 0));
       } else if (e.key === "ArrowRight") {
         setCurrentCol((prev) => (prev < 4 ? prev + 1 : 4));
       }
 
+      // Not A-Z
       if (!alphabetRegex.test(e.key)) {
-        // Not A-Z
         return;
       }
 
