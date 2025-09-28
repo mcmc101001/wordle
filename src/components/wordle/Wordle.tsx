@@ -53,6 +53,20 @@ export default function Wordle() {
         }
       }
 
+      function handleBackSpace() {
+        setLetters((prevLetters) => {
+          const newLetters = deepCopy(prevLetters);
+          // Clear current column if not empty, else clear previous column
+          if (newLetters[currentRow][currentCol] !== "") {
+            newLetters[currentRow][currentCol] = "";
+          } else if (currentCol > 0) {
+            newLetters[currentRow][currentCol - 1] = "";
+          }
+          return newLetters;
+        });
+        setCurrentCol((prev) => (prev > 0 ? prev - 1 : 0));
+      }
+
       if (isGameOver) {
         return;
       }
@@ -62,7 +76,6 @@ export default function Wordle() {
           return;
         }
 
-        console.log(letters[currentRow].join(""));
         if (!allWords.includes(letters[currentRow].join(""))) {
           setNotification("Not in word list!");
           return setTimeout(() => setNotification(""), 2000);
@@ -90,7 +103,6 @@ export default function Wordle() {
       setLetters((prevLetters) => {
         const newLetters = deepCopy(prevLetters);
         newLetters[currentRow][currentCol] = e.key.toUpperCase();
-        console.log(newLetters);
         return newLetters;
       });
 
